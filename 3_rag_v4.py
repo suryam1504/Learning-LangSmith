@@ -1,3 +1,5 @@
+# Solving the issue of setup steps getting repeated every time we ask a question, by saving the vectorstore to disk after creating it for the first time, and loading from disk in subsequent runs if it exists. 
+
 # pip install -U langchain langchain-openai langchain-community faiss-cpu pypdf python-dotenv langsmith
 
 import os
@@ -15,6 +17,8 @@ from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough, RunnableLambda
 from langchain_core.output_parsers import StrOutputParser
+
+os.environ['LANGCHAIN_PROJECT'] = "RAG Chatbot"
 
 load_dotenv()
 
@@ -149,3 +153,7 @@ if __name__ == "__main__":
     q = input("\nQ: ").strip()
     ans = setup_pipeline_and_query(PDF_PATH, q)
     print("\nA:", ans)
+
+# In LangSmith, we see that first run takes around 32 sedconds, but when we run this file again, it only takes 2.44 seconds.
+
+# In first run, paf_rag_full_run has setup pipeline which has build_index, which has load_pdf, split_documents, and build_vectorstore. But in second run, since the index is cached, it directly goes to load_index which is much faster. 
