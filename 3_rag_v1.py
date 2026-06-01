@@ -10,6 +10,8 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough, RunnableLambda
 from langchain_core.output_parsers import StrOutputParser
 
+os.environ['LANGCHAIN_PROJECT'] = "RAG Chatbot"
+
 load_dotenv()  # expects OPENAI_API_KEY in .env
 
 PDF_PATH = "islr.pdf"  # <-- change to your PDF filename
@@ -49,3 +51,13 @@ print("PDF RAG ready. Ask a question (or Ctrl+C to exit).")
 q = input("\nQ: ")
 ans = chain.invoke(q.strip())
 print("\nA:", ans)
+
+
+
+# Great, but there are 2 issue here.
+
+# i. If we look in LangSmith, we notice that technically, our whole RAG sysstem is not getting traced, only the parts where invoke happens, so essentially these guys - parallel | prompt | llm | StrOutputParser(). There is no tracing of what pdf was loaded, how much time that took, how the pdf was chunked and its time, how chunks were embedded, how much time retriever took to get relevant chunks, etc.
+
+# ii. Slight logical issue in code which results in latency issues - if we run this file again, it will again take a lot of time bcoz pdf gets loaded chunked embedded again, but ideally in the first run itself it should have had saved stuff somewhere so next run we have these things ready and we can just ask question. 
+
+# we solve this in 3_rag_v2.py
