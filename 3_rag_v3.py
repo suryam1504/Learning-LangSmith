@@ -1,4 +1,4 @@
-# nothing special in this file, same as 3_rag_v2.py, just how to add custom tags and metadata in decorator functions to be traced by LangSmith
+# Making a top level pdf_rag_full_run which has setup and llm calls inside, and how to add custom tags and metadata in decorator functions to be traced by LangSmith
 
 # pip install -U langchain langchain-openai langchain-community faiss-cpu pypdf python-dotenv langsmith
 
@@ -84,3 +84,5 @@ if __name__ == "__main__":
     q = input("\nQ: ").strip()
     ans = setup_pipeline_and_query(PDF_PATH, q)
     print("\nA:", ans)
+
+# Great, there's still the logical issue of setup steps getting repeated every time we ask a question, we solve that in 3_rag_v4.py by saving the vectorstore to disk after creating it for the first time, and loading from disk in subsequent runs if it exists.
