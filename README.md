@@ -55,3 +55,7 @@ Great, but formation of 2 traces in LangSmith makes it look like these are 2 sep
 5. 3_rag_v3.py
 
 Making a top level pdf_rag_full_run, so just one run which has setup and llm calls inside, and how to add custom tags and metadata in decorator functions to be traced by LangSmith
+
+6. 3_rag_v4.py
+
+Solving the logical issue of setup steps getting repeated every time we ask a question, we solve that by saving the vectorstore to disk after creating it for the first time, and loading from disk in subsequent runs if it exists.
