@@ -1,3 +1,7 @@
+# Solving 1st problem mentioned at end of 3_rag_v1.py
+
+# The way to do it is, import traceable, make functions of things which aren't technically invokable, and whichever functions we want to get traced, wrap them in traceable decorator.
+
 # pip install -U langchain langchain-openai langchain-community faiss-cpu pypdf python-dotenv langsmith
 
 import os
@@ -18,12 +22,14 @@ from langchain_core.output_parsers import StrOutputParser
 # LANGCHAIN_API_KEY=...
 # LANGCHAIN_PROJECT=pdf_rag_demo
 
+os.environ['LANGCHAIN_PROJECT'] = "RAG Chatbot"
+
 load_dotenv()
 
 PDF_PATH = "islr.pdf"  # change to your file
 
 # ---------- traced setup steps ----------
-@traceable(name="load_pdf")
+@traceable(name="load_pdf") # giving a custon run name
 def load_pdf(path: str):
     loader = PyPDFLoader(path)
     return loader.load()  # list[Document]
