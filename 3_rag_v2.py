@@ -95,4 +95,4 @@ print("\nA:", ans)
 
 # Great, but formation of 2 traces in LangSmith makes it look like these are 2 separate executions, ideally we would have liked there to be only 1 trace, and inside we should have had setup_pipeline and LLM calls.
 
-# we solve this in 3_rag_v4.py, also the logical issue of re-running setup_pipeline every time we ask a question.
+# we solve this in 3_rag_v3.py.

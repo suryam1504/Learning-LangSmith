@@ -1,3 +1,5 @@
+# nothing special in this file, same as 3_rag_v2.py, just how to add custom tags and metadata in decorator functions to be traced by LangSmith
+
 # pip install -U langchain langchain-openai langchain-community faiss-cpu pypdf python-dotenv langsmith
 
 import os
@@ -12,6 +14,8 @@ from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough, RunnableLambda
 from langchain_core.output_parsers import StrOutputParser
+
+os.environ['LANGCHAIN_PROJECT'] = "RAG Chatbot"
 
 load_dotenv()
 
