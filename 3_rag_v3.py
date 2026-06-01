@@ -1,4 +1,4 @@
-# Making a top level pdf_rag_full_run which has setup and llm calls inside, and how to add custom tags and metadata in decorator functions to be traced by LangSmith
+# Making a top level pdf_rag_full_run, soo just one run which has setup and llm calls inside, and how to add custom tags and metadata in decorator functions to be traced by LangSmith
 
 # pip install -U langchain langchain-openai langchain-community faiss-cpu pypdf python-dotenv langsmith
 
