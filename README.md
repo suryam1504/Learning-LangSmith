@@ -1,96 +1,120 @@
 # LangSmith
 
-Helps with uified Observability and evaluation platform where we/teams can debug, test, and monitor AI app performance.
+LangSmith is a unified observability and evaluation platform that helps developers and teams debug, test, and monitor AI application performance — specifically by tracing LLM calls across Projects, Traces, and Runs.
 
-Essentially, tracing LLM calls (Projects, Traces, Runs) in LangSmith
-
-Helps in Observability, which is the ability to understand a system's internal state by examining its external outputs like logs, metrics, and traces. It allows us to diagnose issues, understand performance, and improve reliability. 
+**Observability** is the ability to understand a system's internal state by examining its external outputs such as logs, metrics, and traces. It allows us to diagnose issues, understand performance, and improve reliability.
 
 LangSmith traces:
 
-- Inputs and Outputs
+- Inputs and outputs
 - All intermediate steps
 - Latency
-- Token Usage
+- Token usage
 - Cost
-- Error
+- Errors
 - Tags
 - Metadata
-- Feeedback
+- Feedback
 
-Some LangSmith definitions:
+### Key Definitions
 
-- Project is one LLM pipeline, eg. INPUT -> Prompt -> LLM -> OutputParser -> Output
+- **Project** — one LLM pipeline, e.g. `INPUT → Prompt → LLM → OutputParser → Output`
+- **Trace** — a single execution of the above pipeline
+- **Run** — every individual component within a trace (e.g. Prompt, LLM, OutputParser, Output)
 
-- Trace is a single execution of the above pipeline.
+---
 
-- Runs is every single component in the pipeline, so here, Prompt, LLM, OutputParser, and Output.
+## Files
 
-1. 1_simple_llm_call.py
+### 1. `1_simple_llm_call.py`
 
-Tracing a simple Project ewith Chain: prompt → model → parser and it's LLM call with multiple executions (traces) and runs in that.
+Traces a simple project with a chain: `prompt → model → parser`, including its LLM call with multiple executions (traces) and runs.
 
-2. 2_sequential_chain.py
+### 2. `2_sequential_chain.py`
 
-Tracing a complex pipeline with multiple models and parsers, along with adding custom trace name (instead of the defaul Runnable Sequence) and adding custom tags and metadata.
+Traces a complex pipeline with multiple models and parsers. Also demonstrates adding a custom trace name (instead of the default `RunnableSequence`) and adding custom tags and metadata.
 
-Tracing in RAG
+---
 
-When a RAG app fails, there are almost always 2 reasons for it:
+### Tracing in RAG
 
-i. Retriever errors: wrong/irrelevant docs retrieved
-ii. Generator errors: model hallucinates or misuses context
+When a RAG app fails, there are almost always two reasons:
 
-And in production systems, it is often unclear where the failure happened. Was the retriever bad or did the LLM ignore docs.
+1. **Retriever errors** — wrong or irrelevant documents retrieved
+2. **Generator errors** — the model hallucinates or misuses the context
 
-With LangSmith, following is recorded:
+In production systems, it is often unclear where the failure occurred: was the retriever bad, or did the LLM ignore the retrieved documents?
 
-i. User query
-ii. Retrieved documents
-iii. LLM Prompt (with inserted docs)
-iv. LLM response
+With LangSmith, the following is recorded for every trace:
 
-So we can check every run in a trace to see where exactly the issue was.
+1. User query
+2. Retrieved documents
+3. LLM prompt (with inserted documents)
+4. LLM response
 
-3. 3_rag_v1.py
+This makes it possible to inspect every run in a trace and pinpoint exactly where the issue occurred.
 
-Tracing a simple RAG application.
+---
 
-Problems:
+### 3. `3_rag_v1.py`
 
-i. If we look in LangSmith, we notice that technically, our whole RAG sysstem is not getting traced, only the parts where invoke happens, so essentially these guys - parallel | prompt | llm | StrOutputParser(). There is no tracing of what pdf was loaded, how much time that took, how the pdf was chunked and its time, how chunks were embedded, how much time retriever took to get relevant chunks, etc.
+Traces a simple RAG application.
 
-ii. Slight logical issue in code which results in latency issues - if we run this file again, it will again take a lot of time bcoz pdf gets loaded chunked embedded again, but ideally in the first run itself it should have had saved stuff somewhere so next run we have these things ready and we can just ask question. 
+**Problems:**
 
-4. 3_rag_v2.py
+1. Only the invokable portion of the pipeline is traced in LangSmith — specifically `parallel | prompt | llm | StrOutputParser()`. Steps like PDF loading, chunking, and embedding are not captured, so there is no visibility into how long they took or what they produced.
 
-Solving the first problem from above by importing traceable and make functions of things which aren't technically invokable, and whichever functions we want to get traced, wrap them in traceable decorator.
+2. There is a logical inefficiency: every time the script runs, it reloads, re-chunks, and re-embeds the PDF. Ideally, these results should be saved on the first run and reused in subsequent runs.
 
-Problems:
+### 4. `3_rag_v2.py`
 
-In LangSmith, we see that 2 traces are created - one for setup_pipeline which has child spans for load_pdf, split_documents, build_vectorstore, and another trace for pdf_rag_query which has child spans for retriever and llm calls. We can see the time taken by each step, the inputs/outputs, etc.
+Solves the first problem from above by wrapping non-invokable functions with the `@traceable` decorator so they are captured as traced runs in LangSmith.
 
-Great, but formation of 2 traces in LangSmith makes it look like these are 2 separate executions, ideally we would have liked there to be only 1 trace, and inside we should have had setup_pipeline and LLM calls.
+**Remaining problem:**
 
-5. 3_rag_v3.py
+LangSmith shows two separate traces — one for `setup_pipeline` (with child spans for `load_pdf`, `split_documents`, and `build_vectorstore`) and another for `pdf_rag_query` (with child spans for the retriever and LLM calls). This makes the execution look like two separate pipelines, when ideally it should appear as a single trace with both setup and query steps nested inside.
 
-Making a top level pdf_rag_full_run, so just one run which has setup and llm calls inside, and how to add custom tags and metadata in decorator functions to be traced by LangSmith
+### 5. `3_rag_v3.py`
 
-6. 3_rag_v4.py
+Introduces a top-level `pdf_rag_full_run` function so that both the setup and the LLM query appear as a single trace in LangSmith, with all child spans nested inside. Also demonstrates how to add custom tags and metadata to `@traceable` decorator functions.
 
-Solving the logical issue of setup steps getting repeated every time we ask a question, we solve that by saving the vectorstore to disk after creating it for the first time, and loading from disk in subsequent runs if it exists.
+### 6. `3_rag_v4.py`
 
-7. 4_agent.py
+Solves the logical inefficiency from `3_rag_v1.py` by saving the vectorstore to disk after it is built for the first time, and loading it from disk on subsequent runs if it already exists. Uses content-aware cache keying (SHA-256 hash of the PDF, chunk size, chunk overlap, and embedding model) so the index is automatically rebuilt if any of those parameters change.
 
-Tracing a simple ReAct agent and hence it's internal reasoning and actions and tool calling.
+### 7. `4_agent.py`
 
-8. 5_langgraph.py
+Traces a simple ReAct agent, capturing its internal reasoning, actions, and tool calls.
 
-In LangGraph,
+### 8. `5_langgraph.py`
+
+In LangGraph:
 
 - Every graph execution is a trace.
-- Each node (eg. retriever, LLM, tool call, subgraph) is a run inside the trace.
-- We can visualize the path taken: eg. START -> Retriever -> Reranker -> LLM Answer -> END
-- If a workflow branches (conditional/parallel/subgraph), LangSmith captures which path was taken and executed.
+- Each node (e.g. retriever, LLM, tool call, subgraph) is a run inside the trace.
+- The path taken through the graph is visualized, e.g. `START → Retriever → Reranker → LLM Answer → END`.
+- If a workflow branches (conditional, parallel, or subgraph), LangSmith captures which path was taken and executed.
 
+---
 
+## Other LangSmith Features
+
+- **Monitoring and Alerting** — Aggregates key metrics across many traces (latency, token usage, cost, error rates, success rates, etc.) to track the overall health of an LLM system. Alerts can be configured to trigger when metrics fall outside acceptable ranges (e.g. a spike in cost or token usage), enabling fast debugging.
+
+- **Evaluation** — Since LLMs are non-deterministic, evaluation in LangSmith provides a systematic way to measure output quality. Tests can be run against gold-standard datasets using custom metrics such as faithfulness, relevance, or completeness. Supported approaches include automated scoring with LLM-as-a-judge, semantic similarity checks, and custom Python evaluators. Evaluations can be run offline (batch tests before deployment) or online (continuous checks on live traffic).
+
+  LLM behavior can be unpredictable — a small change in prompts, models, or retrieval logic may improve some cases while breaking others. Evaluation provides an objective, repeatable way to track performance over time, ensuring that new versions are genuinely better and preventing regressions.
+
+  **Example** — for a RAG chatbot, you might evaluate:
+  - **Faithfulness** → Are answers grounded in the retrieved documents?
+  - **Relevance** → Does the response actually address the user's question?
+
+  By running the same dataset across GPT-4, Claude, and LLaMA, you can directly compare which model or pipeline configuration performs best.
+
+- **Prompt Experimentation** — Enables systematic testing and comparison of different prompt versions. A/B tests can be run across prompts on the same dataset, with performance tracked against evaluation metrics and results stored over time. This provides a clear history of which prompt variations worked best and under what conditions, and can also be used to compare behavior across different models.
+
+- **Dataset Creation and Annotation** — Build and label datasets for evaluation and fine-tuning directly within LangSmith.
+
+- **User Feedback Integration** — Collect thumbs up/down ratings or structured feedback from users in production and associate it with specific traces.
+
+- **Collaboration** — Share a link to any trace with a team member so they can inspect and analyze it directly.
