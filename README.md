@@ -1,10 +1,30 @@
-Tracing LLM calls (Projects, Traces, Runs) in LangSmith
+# LangSmith
 
-Project is one LLM pipeline, eg. INPUT -> LLM -> OutputParser -> Output
+Helps with uified Observability and evaluation platform where we/teams can debug, test, and monitor AI app performance.
 
-Trace is a single execution of the above pipeline.
+Essentially, tracing LLM calls (Projects, Traces, Runs) in LangSmith
 
-Runs is every single component in the pipeline, so here, LLM, OutputParser, and Output.
+Helps in Observability, which is the ability to understand a system's internal state by examining its external outputs like logs, metrics, and traces. It allows us to diagnose issues, understand performance, and improve reliability. 
+
+LangSmith traces:
+
+- Inputs and Outputs
+- All intermediate steps
+- Latency
+- Token Usage
+- Cost
+- Error
+- Tags
+- Metadata
+- Feeedback
+
+Some LangSmith definitions:
+
+- Project is one LLM pipeline, eg. INPUT -> Prompt -> LLM -> OutputParser -> Output
+
+- Trace is a single execution of the above pipeline.
+
+- Runs is every single component in the pipeline, so here, Prompt, LLM, OutputParser, and Output.
 
 1. 1_simple_llm_call.py
 
@@ -59,3 +79,18 @@ Making a top level pdf_rag_full_run, so just one run which has setup and llm cal
 6. 3_rag_v4.py
 
 Solving the logical issue of setup steps getting repeated every time we ask a question, we solve that by saving the vectorstore to disk after creating it for the first time, and loading from disk in subsequent runs if it exists.
+
+7. 4_agent.py
+
+Tracing a simple ReAct agent and hence it's internal reasoning and actions and tool calling.
+
+8. 5_langgraph.py
+
+In LangGraph,
+
+- Every graph execution is a trace.
+- Each node (eg. retriever, LLM, tool call, subgraph) is a run inside the trace.
+- We can visualize the path taken: eg. START -> Retriever -> Reranker -> LLM Answer -> END
+- If a workflow branches (conditional/parallel/subgraph), LangSmith captures which path was taken and executed.
+
+

@@ -1,7 +1,13 @@
+# Here, altho LangSmith automatically captures all the data of nodes, we also wrote traceable for functions inside the nodes to add more structured metadata and tags to the runs. So basically we are tracing nodes and also the functions insdie those nodes. This is optional, but it shows how we can use the traceable decorator to add more context to your runs in LangSmith
+
 # pip install -U langgraph langchain-openai pydantic python-dotenv langsmith
 
 import operator
 from typing import TypedDict, Annotated, List
+import os
+
+os.environ['LANGCHAIN_PROJECT'] = "LangGraph Essay Checker"
+
 
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
