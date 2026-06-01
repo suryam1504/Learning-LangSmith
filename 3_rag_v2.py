@@ -89,3 +89,10 @@ config = {
 
 ans = chain.invoke(q, config=config)
 print("\nA:", ans)
+
+
+# In LangSmith, we see that 2 traces are created - one for setup_pipeline which has child spans for load_pdf, split_documents, build_vectorstore, and another trace for pdf_rag_query which has child spans for retriever and llm calls. We can see the time taken by each step, the inputs/outputs, etc.
+
+# Great, but formation of 2 traces in LangSmith makes it look like these are 2 separate executions, ideally we would have liked there to be only 1 trace, and inside we should have had setup_pipeline and LLM calls.
+
+# we solve this in 3_rag_v4.py, also the logical issue of re-running setup_pipeline every time we ask a question.
